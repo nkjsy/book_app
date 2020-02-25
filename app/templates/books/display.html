@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}My Books{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form action="{{ url_for('books.add') }}" method="post">
+    <label for="title">Title</label>
+    <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <label for="author">Author</label>
+    <input name="author" id="author" value="{{ request.form['author'] }}" required>
+    <input type="submit" value="ADD">
+  </form>
+
+  <table border="1" width=900px>
+  <tr>
+      <th>Title</th>
+      <th>Author</th>
+      <th>Action</th>
+  </tr>
+  {% for book in books %}
+      <tr action="{{ url_for('books.delete', title=book['title'], author=book['author']) }}" method="post">
+      <td width=45% align="center">{{ book['title'] }}</td>
+      <td width=45% align="center">{{ book['author'] }}</td>
+      <td>
+          <form action="{{ url_for('books.delete') }}" method="post">
+            <input type="hidden" name="title" value="{{ book['title'] }}">
+            <input type="hidden" name="author" value="{{ book['author'] }}">
+            <input class="danger" type="submit" value="DELETE" onclick="return confirm('Are you sure to delete this book?');">
+          </form>
+      </td>
+      </tr>
+  {% endfor %}
+  </table>
+{% endblock %}
