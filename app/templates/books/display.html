@@ -7,9 +7,9 @@
 {% block content %}
   <form action="{{ url_for('books.add') }}" method="post">
     <label for="title">Title</label>
-    <input name="title" id="title" value="{{ request.form['title'] }}" required>
+    <input name="title" id="title" value="{{ request.form['title'] }}">
     <label for="author">Author</label>
-    <input name="author" id="author" value="{{ request.form['author'] }}" required>
+    <input name="author" id="author" value="{{ request.form['author'] }}">
     <input type="submit" value="ADD">
   </form>
 

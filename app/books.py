@@ -17,13 +17,18 @@ def display():
 def add():
     title = request.form['title']
     author = request.form['author']
-    error = None
+    error = ''
+    error_title = 'Title is required. ' if not title else ''
+    error_author = 'Author is required. ' if not author else ''
+    error = error + error_title + error_author
 
-    if not title:
-        error = 'Title is required.'
-
-    if error is not None:
+    if error != '':
         flash(error)
+        db = get_db()
+        books = db.execute(
+            'SELECT title, author FROM book'
+        ).fetchall()
+        return render_template('books/display.html', books=books)
     else:
         db = get_db()
         db.execute(
