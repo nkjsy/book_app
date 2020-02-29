@@ -35,3 +35,31 @@ def test_delete(client, app_test):
         db = get_db()
         post = db.execute('SELECT * FROM book WHERE title = "Pride and Prejudice"').fetchone()
         assert post is None
+        
+# test exporting csv files
+def test_export_csv(client):
+    response = client.get('/books/export/all.csv')
+    assert b'title,author' in response.data
+    assert b"Alice's Adventures in Wonderland,Lewis Carroll" in response.data
+    response = client.get('/books/export/title.csv')
+    assert b'title' in response.data
+    assert b"Alice's Adventures in Wonderland" in response.data
+    response = client.get('/books/export/author.csv')
+    assert b'author' in response.data
+    assert b'Lewis Carroll' in response.data
+
+# test exporting xml files
+def test_export_xml(client):
+    response = client.get('/books/export/all.xml')
+    assert b'<books>', b'</books>' in response.data
+    assert b'<book>', b'</book>' in response.data
+    assert b"<title>Alice's Adventures in Wonderland</title>" in response.data
+    assert b'<author>Lewis Carroll</author>' in response.data
+    response = client.get('/books/export/title.xml')
+    assert b'<books>', b'</books>' in response.data
+    assert b'<book>', b'</book>' in response.data
+    assert b"<title>Alice's Adventures in Wonderland</title>" in response.data
+    response = client.get('/books/export/author.xml')
+    assert b'<books>', b'</books>' in response.data
+    assert b'<book>', b'</book>' in response.data
+    assert b'<author>Lewis Carroll</author>' in response.data

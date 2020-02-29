@@ -30,10 +30,12 @@ def app_test():
     os.close(db_fd)
     os.unlink(db_path)
 
+# generate the client for testing
 @pytest.fixture
 def client(app_test):
     return app_test.test_client()
 
+# generate the runner for testing
 @pytest.fixture
 def runner(app_test):
     return app_test.test_cli_runner()

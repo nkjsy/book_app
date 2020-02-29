@@ -33,4 +33,17 @@
       </tr>
   {% endfor %}
   </table>
+
+  <br/><br/>
+  <a href="{{url_for('.export', filename='all.csv')}}"> Export title and author in csv </a>
+  <br/><br/>
+  <a href="{{url_for('.export', filename='all.xml')}}" download="all.xml"> Export title and author in xml </a>
+  <br/><br/>
+  <a href="{{url_for('.export', filename='title.csv')}}"> Export only title in csv </a>
+  <br/><br/>
+  <a href="{{url_for('.export', filename='title.xml')}}" download="title.xml"> Export only title in xml </a>
+  <br/><br/>
+  <a href="{{url_for('.export', filename='author.csv')}}"> Export only author in csv </a>
+  <br/><br/>
+  <a href="{{url_for('.export', filename='author.xml')}}" download="author.xml"> Export only author in xml </a>
 {% endblock %}
