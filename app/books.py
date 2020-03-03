@@ -1,9 +1,12 @@
-from flask import Blueprint, flash, g, redirect, render_template, request, url_for, send_file, Response, stream_with_context
-from werkzeug.exceptions import abort
-
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for, Response, stream_with_context
 from app.db import get_db
+import joblib
+from app.grouping import book_grouping
 
 bp = Blueprint('books', __name__, url_prefix='/books')
+vectorizer = joblib.load('../model/vectorizer.pkl')
+lda = joblib.load('../model/lda.pkl')
+gmm = joblib.load('../model/gmm.pkl')
 
 # main page
 @bp.route('/')
@@ -32,6 +35,7 @@ def add():
         ).fetchall()
         return render_template('books/display.html', books=books)
     else:
+        groups = book_grouping(title, author, vectorizer, lda, gmm)
         db = get_db()
         db.execute(
             'INSERT INTO book (title, author)'
