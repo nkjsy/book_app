@@ -3,5 +3,7 @@ DROP TABLE IF EXISTS book;
 CREATE TABLE book (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
-  author TEXT NOT NULL
+  author TEXT NOT NULL,
+  groups TEXT,
+  maxgroup INTEGER
 );

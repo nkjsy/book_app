@@ -4,9 +4,12 @@ import joblib
 from app.grouping import book_grouping
 
 bp = Blueprint('books', __name__, url_prefix='/books')
-vectorizer = joblib.load('../model/vectorizer.pkl')
-lda = joblib.load('../model/lda.pkl')
-gmm = joblib.load('../model/gmm.pkl')
+# load the tfidf vectorizer
+vectorizer = joblib.load('/root/book_app/model/vectorizer.pkl')
+# load the LDA topic model
+lda = joblib.load('/root/book_app/model/lda.pkl')
+# load the Gaussian mixture model for clustering
+gmm = joblib.load('/root/book_app/model/gmm.pkl')
 
 # main page
 @bp.route('/')
@@ -17,7 +20,7 @@ def display():
     ).fetchall()
     return render_template('books/display.html', books=books)
 
-# add the title and author information of a book
+# add the title and author information of a book, along with the group info invisible to users
 @bp.route('/add', methods=('POST',))
 def add():
     title = request.form['title']
@@ -29,18 +32,14 @@ def add():
 
     if error != '':
         flash(error)
-        db = get_db()
-        books = db.execute(
-            'SELECT title, author FROM book'
-        ).fetchall()
-        return render_template('books/display.html', books=books)
+        return redirect(url_for('books.display'))
     else:
         groups = book_grouping(title, author, vectorizer, lda, gmm)
         db = get_db()
         db.execute(
-            'INSERT INTO book (title, author)'
-            ' VALUES (?, ?)',
-            (title, author)
+            'INSERT INTO book (title, author, groups, maxgroup)'
+            ' VALUES (?, ?, ?, ?)',
+            (title, author, groups, int(groups.split(',')[0]))
         )
         db.commit()
         return redirect(url_for('books.display'))

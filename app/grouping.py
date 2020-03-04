@@ -10,7 +10,7 @@ def get_stopwords(file):
 # funtion to clean the title
 def clean_title(line):
     result = []
-    stopwords = get_stopwords('../data/stopwords.txt')
+    stopwords = get_stopwords('/root/book_app/data/stopwords.txt')
     # remove the punctuation
     punc = '[~`\!\#\$\%^\&\*\'\(\)_\+\-\=\|\[\]\\/\:;\.,\?\>\<\@\"\{\}]'
     line = re.sub(re.compile(punc), '', line)
