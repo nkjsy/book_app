@@ -2,9 +2,10 @@ import pytest
 import numpy as np
 from app.grouping import clean_title, clean_author, into_groups
 import joblib
-vectorizer = joblib.load('../model/vectorizer.pkl')
-lda = joblib.load('../model/lda.pkl')
-gmm = joblib.load('../model/gmm.pkl')
+
+vectorizer = joblib.load('/root/book_app/model/vectorizer.pkl')
+lda = joblib.load('/root/book_app/model/lda.pkl')
+gmm = joblib.load('/root/book_app/model/gmm.pkl')
 
 
 # test cleaning title

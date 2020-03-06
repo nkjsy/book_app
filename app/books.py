@@ -1,7 +1,10 @@
 from flask import Blueprint, flash, g, redirect, render_template, request, url_for, Response, stream_with_context
 from app.db import get_db
 import joblib
+import pandas as pd
 from app.grouping import book_grouping
+from app.recommend import recommend_group, recommend_knn
+
 
 bp = Blueprint('books', __name__, url_prefix='/books')
 # load the tfidf vectorizer
@@ -10,15 +13,21 @@ vectorizer = joblib.load('/root/book_app/model/vectorizer.pkl')
 lda = joblib.load('/root/book_app/model/lda.pkl')
 # load the Gaussian mixture model for clustering
 gmm = joblib.load('/root/book_app/model/gmm.pkl')
+# load the k nearest neighbors model for recommendation
+knn = joblib.load('/root/book_app/model/knn.pkl')
+# load the original data for recommendation
+archive = pd.read_csv('/root/book_app/data/archive.csv', header=0, encoding='utf-8')
 
 # main page
 @bp.route('/')
 def display():
     db = get_db()
     books = db.execute(
-        'SELECT title, author FROM book'
+        'SELECT title, author, maxgroup FROM book'
     ).fetchall()
-    return render_template('books/display.html', books=books)
+    # recommends = recommend_group(books, archive)
+    recommends = recommend_knn(books, archive, vectorizer, lda, knn)
+    return render_template('books/display.html', books=books, recommends=recommends)
 
 # add the title and author information of a book, along with the group info invisible to users
 @bp.route('/add', methods=('POST',))
