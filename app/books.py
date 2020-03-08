@@ -1,22 +1,29 @@
-from flask import Blueprint, flash, g, redirect, render_template, request, url_for, Response, stream_with_context
+from flask import Blueprint, flash, redirect, render_template, request, url_for, Response, stream_with_context
 from app.db import get_db
 import joblib
+import os
 import pandas as pd
-from app.grouping import book_grouping
+from app.grouping import get_stopwords, book_grouping
 from app.recommend import recommend_group, recommend_knn
 
 
 bp = Blueprint('books', __name__, url_prefix='/books')
+# set the paths
+project_root = os.path.dirname(bp.root_path)
+model_path = os.path.join(project_root, 'model')
+data_path = os.path.join(project_root, 'data')
+# load the stopwords
+stopwords = get_stopwords(data_path + '/stopwords.txt')
 # load the tfidf vectorizer
-vectorizer = joblib.load('/root/book_app/model/vectorizer.pkl')
+vectorizer = joblib.load(model_path + '/vectorizer.pkl')
 # load the LDA topic model
-lda = joblib.load('/root/book_app/model/lda.pkl')
+lda = joblib.load(model_path + '/lda.pkl')
 # load the Gaussian mixture model for clustering
-gmm = joblib.load('/root/book_app/model/gmm.pkl')
+gmm = joblib.load(model_path + '/gmm.pkl')
 # load the k nearest neighbors model for recommendation
-knn = joblib.load('/root/book_app/model/knn.pkl')
+knn = joblib.load(model_path + '/knn.pkl')
 # load the original data for recommendation
-archive = pd.read_csv('/root/book_app/data/archive.csv', header=0, encoding='utf-8')
+archive = pd.read_csv(data_path + '/archive.csv', header=0, encoding='utf-8')
 
 # main page
 @bp.route('/')
@@ -26,7 +33,7 @@ def display():
         'SELECT title, author, maxgroup FROM book'
     ).fetchall()
     # recommends = recommend_group(books, archive)
-    recommends = recommend_knn(books, archive, vectorizer, lda, knn)
+    recommends = recommend_knn(books, archive, vectorizer, lda, knn, stopwords)
     return render_template('books/display.html', books=books, recommends=recommends)
 
 # add the title and author information of a book, along with the group info invisible to users
@@ -43,7 +50,7 @@ def add():
         flash(error)
         return redirect(url_for('books.display'))
     else:
-        groups = book_grouping(title, author, vectorizer, lda, gmm)
+        groups = book_grouping(title, author, vectorizer, lda, gmm, stopwords)
         db = get_db()
         db.execute(
             'INSERT INTO book (title, author, groups, maxgroup)'

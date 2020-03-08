@@ -19,10 +19,10 @@ def recommend_group(books, archive):
     return recommends
 
 # average the book vectors in the current list and recommend the k nearest neighbors in the vector space
-def recommend_knn(books, archive, vectorizer, topic_model, knn_model):
+def recommend_knn(books, archive, vectorizer, topic_model, knn_model, stopwords):
     books_info = []
     for book in books:
-        both = clean_title(book['title']) + ' ' + clean_author(book['author'])
+        both = clean_title(book['title'], stopwords) + ' ' + clean_author(book['author'])
         books_info.append(both)
     if books_info == []:
         # no book in the list

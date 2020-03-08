@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 import pandas as pd
+from app.grouping import get_stopwords
 from app.recommend import recommend_group, recommend_knn
 from app.db import get_db
 import joblib
@@ -9,7 +10,7 @@ vectorizer = joblib.load('/root/book_app/model/vectorizer.pkl')
 lda = joblib.load('/root/book_app/model/lda.pkl')
 knn = joblib.load('/root/book_app/model/knn.pkl')
 archive = pd.read_csv('/root/book_app/data/archive.csv', header=0, encoding='utf-8')
-
+stopwords = get_stopwords('/root/book_app/data/stopwords.txt')
 
 # test recommendation by group
 def test_recommend_group(app_test):
@@ -31,7 +32,7 @@ def test_recommend_knn(app_test):
         books = db.execute(
             'SELECT title, author, maxgroup FROM book'
         ).fetchall()
-        recommends = recommend_knn(books, archive, vectorizer, lda, knn)
+        recommends = recommend_knn(books, archive, vectorizer, lda, knn, stopwords)
         assert len(recommends) == 5
         title, author = recommends[0]
         assert title in archive['title'].values

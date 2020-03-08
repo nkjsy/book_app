@@ -8,9 +8,8 @@ def get_stopwords(file):
     return stopwords
 
 # funtion to clean the title
-def clean_title(line):
+def clean_title(line, stopwords=None):
     result = []
-    stopwords = get_stopwords('/root/book_app/data/stopwords.txt')
     # remove the punctuation
     punc = '[~`\!\#\$\%^\&\*\'\(\)_\+\-\=\|\[\]\\/\:;\.,\?\>\<\@\"\{\}]'
     line = re.sub(re.compile(punc), '', line)
@@ -18,7 +17,7 @@ def clean_title(line):
     for word in words:
         word = word.lower()
         # exclude the stopwords or pure numbers
-        if word in stopwords or word.isdigit():
+        if stopwords is not None and word in stopwords or word.isdigit():
             continue
         result.append(word)
     return ' '.join(result)
@@ -50,8 +49,8 @@ def into_groups(distribution):
     return ','.join(map(str, groups))
 
 # book grouping function
-def book_grouping(title, author, vectorizer, topic_model, cluster_model):
-    both = clean_title(title) + ' ' + clean_author(author)
+def book_grouping(title, author, vectorizer, topic_model, cluster_model, stopwords):
+    both = clean_title(title, stopwords) + ' ' + clean_author(author)
     vector = vectorizer.transform([both])
     vector_topic = topic_model.transform(vector)
     distribution = cluster_model.predict_proba(vector_topic)[0,:]

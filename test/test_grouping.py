@@ -1,16 +1,16 @@
 import pytest
 import numpy as np
-from app.grouping import clean_title, clean_author, into_groups
+from app.grouping import get_stopwords, clean_title, clean_author, into_groups
 import joblib
 
 vectorizer = joblib.load('/root/book_app/model/vectorizer.pkl')
 lda = joblib.load('/root/book_app/model/lda.pkl')
 gmm = joblib.load('/root/book_app/model/gmm.pkl')
-
+stopwords = get_stopwords('/root/book_app/data/stopwords.txt')
 
 # test cleaning title
 def test_clean_title():
-    clean = clean_title("Alice's adventure in wonderland")
+    clean = clean_title("Alice's adventure in wonderland", stopwords)
     assert clean == "alices adventure wonderland"
 
 # test cleaning author
