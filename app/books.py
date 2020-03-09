@@ -1,20 +1,42 @@
-from flask import Blueprint, flash, g, redirect, render_template, request, url_for, send_file, Response, stream_with_context
-from werkzeug.exceptions import abort
-
+from flask import Blueprint, flash, redirect, render_template, request, url_for, Response, stream_with_context
 from app.db import get_db
+import joblib
+import os
+import pandas as pd
+from app.grouping import get_stopwords, book_grouping
+from app.recommend import recommend_group, recommend_knn
+
 
 bp = Blueprint('books', __name__, url_prefix='/books')
+# set the paths
+project_root = os.path.dirname(bp.root_path)
+model_path = os.path.join(project_root, 'model')
+data_path = os.path.join(project_root, 'data')
+# load the stopwords
+stopwords = get_stopwords(data_path + '/stopwords.txt')
+# load the tfidf vectorizer
+vectorizer = joblib.load(model_path + '/vectorizer.pkl')
+# load the LDA topic model
+lda = joblib.load(model_path + '/lda.pkl')
+# load the Gaussian mixture model for clustering
+gmm = joblib.load(model_path + '/gmm.pkl')
+# load the k nearest neighbors model for recommendation
+knn = joblib.load(model_path + '/knn.pkl')
+# load the original data for recommendation
+archive = pd.read_csv(data_path + '/archive.csv', header=0, encoding='utf-8')
 
 # main page
 @bp.route('/')
 def display():
     db = get_db()
     books = db.execute(
-        'SELECT title, author FROM book'
+        'SELECT title, author, maxgroup FROM book'
     ).fetchall()
-    return render_template('books/display.html', books=books)
+    # recommends = recommend_group(books, archive)
+    recommends = recommend_knn(books, archive, vectorizer, lda, knn, stopwords)
+    return render_template('books/display.html', books=books, recommends=recommends)
 
-# add the title and author information of a book
+# add the title and author information of a book, along with the group info invisible to users
 @bp.route('/add', methods=('POST',))
 def add():
     title = request.form['title']
@@ -26,17 +48,14 @@ def add():
 
     if error != '':
         flash(error)
-        db = get_db()
-        books = db.execute(
-            'SELECT title, author FROM book'
-        ).fetchall()
-        return render_template('books/display.html', books=books)
+        return redirect(url_for('books.display'))
     else:
+        groups = book_grouping(title, author, vectorizer, lda, gmm, stopwords)
         db = get_db()
         db.execute(
-            'INSERT INTO book (title, author)'
-            ' VALUES (?, ?)',
-            (title, author)
+            'INSERT INTO book (title, author, groups, maxgroup)'
+            ' VALUES (?, ?, ?, ?)',
+            (title, author, groups, int(groups.split(',')[0]))
         )
         db.commit()
         return redirect(url_for('books.display'))

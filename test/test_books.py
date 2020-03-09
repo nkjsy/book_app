@@ -21,12 +21,8 @@ def test_add(client, app_test):
         assert count == 2
         book = db.execute('SELECT * FROM book WHERE title = "Pride and Prejudice"').fetchone()
         assert book['author'] == 'Jane Austen'
-
-# test adding validation
-def test_add_validate(client):
-    response = client.post('/books/add', data={'title': '', 'author': ''})
-    assert b'Title is required.' in response.data
-    assert b'Author is required.' in response.data
+        assert isinstance(book['groups'], str)
+        assert isinstance(book['maxgroup'], int)
 
 # test deleting
 def test_delete(client, app_test):
